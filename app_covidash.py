@@ -34,7 +34,9 @@ well_type_options = [{'label': str(WELL_TYPES[well_type]),
 
 # Load data
 df = pd.read_csv("https://brasil.io/dataset/covid19/caso/?format=csv")
-df['date'] = pd.to_datetime(df['date'])
+df = df[df["place_type"]=="state"]  
+df["date"] = pd.to_datetime(df["date"])
+
 df = pd.read_csv('data/wellspublic.csv')
 df['Date_Well_Completed'] = pd.to_datetime(df['Date_Well_Completed'])
 df = df[df['Date_Well_Completed'] > dt.datetime(1960, 1, 1)]
@@ -115,7 +117,7 @@ app.layout = html.Div(
                 html.Div(
                     [
                         html.P(
-                            'Filter by construction date (or select range in histogram):',
+                            'Fitrar por data:',
                             className="control_label"
                         ),
                         dcc.RangeSlider(
@@ -126,15 +128,15 @@ app.layout = html.Div(
                             className="dcc_control"
                         ),
                         html.P(
-                            'Filter by well status:',
+                            'Filtrar por área:',
                             className="control_label"
                         ),
                         dcc.RadioItems(
                             id='well_status_selector',
                             options=[
-                                {'label': 'All ', 'value': 'all'},
-                                {'label': 'Active only ', 'value': 'active'},
-                                {'label': 'Customize ', 'value': 'custom'}
+                                {'label': 'Estados ', 'value': 'all'},
+                                {'label': 'Municípios ', 'value': 'active'},
+                                #{'label': 'Municípios ', 'value': 'custom'}
                             ],
                             value='active',
                             labelStyle={'display': 'inline-block'},
@@ -156,16 +158,16 @@ app.layout = html.Div(
                             className="dcc_control"
                         ),
                         html.P(
-                            'Filter by well type:',
+                            'Escolha visualização:',
                             className="control_label"
                         ),
                         dcc.RadioItems(
                             id='well_type_selector',
                             options=[
-                                {'label': 'All ', 'value': 'all'},
-                                {'label': 'Productive only ',
+                                {'label': 'Incidência ', 'value': 'all'},
+                                {'label': 'Morbidade ',
                                     'value': 'productive'},
-                                {'label': 'Customize ', 'value': 'custom'}
+                                {'label': 'Extras ', 'value': 'custom'}
                             ],
                             value='productive',
                             labelStyle={'display': 'inline-block'},
@@ -187,7 +189,7 @@ app.layout = html.Div(
                             [
                                 html.Div(
                                     [
-                                        html.P("No. of Wells"),
+                                        html.P("Casos"),
                                         html.H6(
                                             id="well_text",
                                             className="info_text"
@@ -201,7 +203,7 @@ app.layout = html.Div(
                                     [
                                         html.Div(
                                             [
-                                                html.P("Gas"),
+                                                html.P("Mortes"),
                                                 html.H6(
                                                     id="gasText",
                                                     className="info_text"
@@ -212,7 +214,7 @@ app.layout = html.Div(
                                         ),
                                         html.Div(
                                             [
-                                                html.P("Oil"),
+                                                html.P("Incidência"),
                                                 html.H6(
                                                     id="oilText",
                                                     className="info_text"
@@ -223,7 +225,7 @@ app.layout = html.Div(
                                         ),
                                         html.Div(
                                             [
-                                                html.P("Water"),
+                                                html.P("Letalidade"),
                                                 html.H6(
                                                     id="waterText",
                                                     className="info_text"
@@ -307,7 +309,9 @@ def human_format(num):
     return mantissa + ['', 'K', 'M', 'G', 'T', 'P'][magnitude]
 
 
-def filter_dataframe(df, well_statuses, well_types, year_slider):
+def filter_dataframe(df, well_statuses, well_types, year_slider,covidash=False):
+    if covidash:
+        dff = df
     dff = df[df['Well_Status'].isin(well_statuses)
              & df['Well_Type'].isin(well_types)
              & (df['Date_Well_Completed'] > dt.datetime(year_slider[0], 1, 1))
@@ -747,7 +751,7 @@ def make_count_figure(well_statuses, well_types, year_slider):
         ),
     ]
 
-    layout_count['title'] = 'Completed Wells/Year'
+    layout_count['title'] = "Casos/mortes"#'Completed Wells/Year'
     layout_count['dragmode'] = 'select'
     layout_count['showlegend'] = False
     layout_count['autosize'] = True
