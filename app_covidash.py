@@ -311,7 +311,7 @@ def human_format(num):
 
 def filter_dataframe(df, well_statuses, well_types, year_slider,covidash=False):
     if covidash:
-        dff = df
+        dff = df[df["place_type"]].isin()
     dff = df[df['Well_Status'].isin(well_statuses)
              & df['Well_Type'].isin(well_types)
              & (df['Date_Well_Completed'] > dt.datetime(year_slider[0], 1, 1))
